@@ -10,9 +10,9 @@ public class node {
 	node down;
 	node right;
 	node left;
-	double f;
-	double g;
-	double h;
+	Integer f;
+	Integer g;
+	Integer h;
 	Integer row;
 	Integer col;
 	
@@ -20,6 +20,9 @@ public class node {
 	node(Integer[][] puz){
 		puzzle = puz;
 		up = down = left = right = null;
+		g = 0;
+		h = 0;
+		f = 0;
 	}
 	
 	void print(Integer[][] a){
@@ -132,80 +135,120 @@ public class node {
 		addDown();
 	}
 	
-	void ucs(){
+	void algo(int choice){
 		Comparator<node> comparator = new nodeComparator();
 		PriorityQueue<node> q = new PriorityQueue<node>(10, comparator);
 		ArrayList<node> explored = new ArrayList<node>();
-		
-//		Integer test = 0;
+		ArrayList<node> neighbors = new ArrayList<node>();
 		q.add(this);
-		node temp;
-//		while(test != 2){
+		node temp = this;
+		Integer depth = 0;
+		int test = 0;
+		int cost = 43453543;
+		
+//		temp.expand();
+//		while(test != 5){
 		while(q.size() != 0){
 			temp = q.poll();
-			if(temp.left != null){
-				if(temp.left.checkFinal()){
-					System.out.println("Found solution left");
-					break;
-				}
-				temp.left.f = f + 1;
-				if(!temp.left.checkList(explored)){
-					System.out.println("adding :");
-					print(temp.left.puzzle);
-					q.add(temp.left);
-				}
-			}
-			if(temp.right != null){
-				if(temp.right.checkFinal()){
-					System.out.println("Found solution right");
-					break;
-				}
-				temp.right.f = f + 1;
-				if(!temp.right.checkList(explored)){
-					System.out.println("adding :");
-					print(temp.right.puzzle);
-					q.add(temp.right);
-				}
-			}
-			if(temp.up != null){
-				if(temp.up.checkFinal()){
-					System.out.println("Found solution up");
-					break;
-				}
-				temp.up.f = f + 1;
-				if(!temp.up.checkList(explored)){
-					System.out.println("adding :");
-					print(temp.up.puzzle);
-					q.add(temp.up);
-				}
-			}
-			if(temp.down != null){
-				if(temp.down.checkFinal()){
-					System.out.println("Found solution down");
-					break;
-				}
-				temp.down.f = f + 1;
-				if(!temp.down.checkList(explored)){
-					System.out.println("adding :");
-					print(temp.down.puzzle);
-					q.add(temp.down);
-				}
-			}
-			explored.add(temp);
-			temp.expand();
 			System.out.println("Expanding this node: ");
 			print(temp.puzzle);
-//			++test;
+			temp.expand();
+			System.out.println("This is g(n): " + temp.g);
+			System.out.println("This is h(n): " + temp.h);
+			++depth;
+			explored.add(temp);
+			neighbors.add(temp.down);
+			neighbors.add(temp.up);
+			neighbors.add(temp.left);
+			neighbors.add(temp.right);
+			
+			for(node e : neighbors){
+				if(e != null){
+					e.g = temp.g + 1;
+					if(choice == 1){
+						e.h = 0;
+						e.f = e.g + e.h;
+					}
+					else if(choice == 2){
+						e.h = e.mpt();
+						e.f = e.g + e.h;
+					}
+					else if(choice == 3){
+						e.h = e.md();
+						e.f = e.g + e.h;
+					}
+					if(!e.checkFinal()){
+						if(!e.checkList(explored)){
+							System.out.println("This is the puzzle: ");
+							print(e.puzzle);
+							System.out.println("cost of node being added: " + e.f);
+//							System.out.println("this is the depth: " + e.g);
+//							System.out.println("------------");
+//							print(e.puzzle);
+							q.add(e);
+						}
+					}
+					else{
+						System.out.println("solution found : ");
+						print(e.puzzle);
+						return;
+					}
+				}
+			}
+			
+			neighbors.clear();
+			
+			++test;
 		}
-		System.out.println("Ran out of node to expands");
+		System.out.println("Ran out of nodes to expand");
 	}
 	
-	void mpt(){
-		
+	Integer mpt(){
+		Integer a = 1;
+		Integer misplaced = 0;
+		for(Integer i = 0; i < 3; ++i){
+			for(Integer j = 0; j < 3; ++j){
+				if(puzzle[i][j] != a){
+					++misplaced;
+				}
+				++a;
+			}
+		}
+		return misplaced;
 	}
 	
-	void md(){
-		
+	Integer md(){
+		Integer md = 0;
+//		System.out.println("Costs for this puzzle");
+//		print(puzzle);
+		for(Integer i = 0; i < 3; ++i){
+			for(Integer j = 0; j < 3; ++j){
+//				System.out.println("this is the number: " + puzzle[i][j]);
+//				System.out.println("this is the distance from: " +
+//						findDist(puzzle[i][j], i, j));
+				if(puzzle[i][j] != 0){
+					md += findDist(puzzle[i][j], i, j);
+				}
+			}
+		}
+		return md;
+	}
+	
+	Integer findDist(Integer num, Integer x, Integer y){
+		int md = 0;
+		Integer[][] final_puz = new Integer[][]{{1, 2, 3},{4, 5, 6},{7, 8, 0}};
+		for(Integer i = 0; i < 3; ++i){
+			for(Integer j = 0; j < 3; ++j){
+				if(num == final_puz[i][j]){
+//					if(num == 0){
+//						System.out.println("this is row: " + Math.abs(x)
+//						+ " this is col: " + Math.abs(y));
+//					}
+					return Math.abs(x - i) + Math.abs(y - j);
+				}
+			}
+		}
+		return 0;
 	}
 	
 	boolean checkFinal(){
@@ -224,7 +267,7 @@ public class node {
 		for(Integer i = 0; i < 3; ++i){
 			for(Integer j = 0; j < 3; ++j){
 				if(!(a[i][j] == b[i][j])){
-					System.out.print("does not match");
+//					System.out.print("does not match");
 					return false;
 				}
 			}
@@ -233,15 +276,25 @@ public class node {
 	}
 	
 	boolean checkList(ArrayList<node> a){
-		System.out.println(a.size());
+//		System.out.println("checking explored for this: ");
+//		print(puzzle);
 		for(Integer i = 0; i < a.size(); ++i){
-			System.out.println(i + ":");
-			print(a.get(i).puzzle);
+//			System.out.println("index" + i + ":" + " cost: " + a.get(i).f);
+//			print(a.get(i).puzzle);
 			if(check_equals(puzzle, a.get(i).puzzle)){
-				System.out.println("Has been explored");
+//				System.out.println("Has been explored");
 				return true;
 			}
 		}
 		return false;
 	}
+	
+//	boolean checkq(PriorityQueue<node> a){
+//		for(node e : a){
+//			if(check_equals(puzzle, e.puzzle)){
+//				return true;
+//			}
+//		}
+//		return false;
+//	}
 }

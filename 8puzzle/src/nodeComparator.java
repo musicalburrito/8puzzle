@@ -6,7 +6,7 @@ public class nodeComparator implements Comparator<node>{
 		if(x.f < y.f){
 			return -1;
 		}
-		else if(x.f < y.f){
+		else if(x.f > y.f){
 			return 1;
 		}
 		return 0;

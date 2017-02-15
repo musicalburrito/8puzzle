@@ -32,19 +32,19 @@ public class menu {
 		while(!selection.equals("1") && !selection.equals("2") && !selection.equals("3")){
 			selection = input.nextLine();
 			if (selection.equals("1")){
-				puzzle.ucs();
+				puzzle.algo(1);
 			}
 			else if (selection.equals("2")){
-				puzzle.mpt();
+				puzzle.algo(2);
 			}
 			else if (selection.equals("3")){
-				puzzle.md();
+				puzzle.algo(3);
 			}
 		}
 	}
 	
 	public node defaultPuzzle(){
-		Integer[][] puzzle = new Integer[][]{{1, 2, 3},{4, 0, 5},{6, 7, 8}};
+		Integer[][] puzzle = new Integer[][]{{5, 1, 3},{8, 6, 2},{0, 7, 4}};
 		node defaultNode = new node(puzzle);
 		return defaultNode;
 	}
