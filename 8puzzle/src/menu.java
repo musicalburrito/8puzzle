@@ -52,7 +52,7 @@ public class menu {
 	public node customPuzzle(Scanner input){
 //		Scanner input = new Scanner(System.in);
 		
-		System.out.println("Enter your pizzle, use a zero to represent the blank\n"
+		System.out.println("Enter your puzzle, use a zero to represent the blank\n"
 				+ "Enter the first row, use space or tabs between numbers");
 		String r1 = input.nextLine();
 		System.out.println("Enter the second row, use space or tabs between numbers");

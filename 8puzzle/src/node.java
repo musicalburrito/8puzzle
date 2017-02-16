@@ -2,7 +2,11 @@ import java.awt.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.PriorityQueue;
+import java.util.Queue;
+import java.util.Scanner;
+import java.util.Stack;
 
 public class node {
 	Integer [][] puzzle = new Integer[3][3];
@@ -10,6 +14,7 @@ public class node {
 	node down;
 	node right;
 	node left;
+	node parent;
 	Integer f;
 	Integer g;
 	Integer h;
@@ -19,7 +24,7 @@ public class node {
 	
 	node(Integer[][] puz){
 		puzzle = puz;
-		up = down = left = right = null;
+		up = down = left = right = parent = null;
 		g = 0;
 		h = 0;
 		f = 0;
@@ -61,7 +66,7 @@ public class node {
 		new_puz[row][col - 1] = 0;
 		new_puz[row][col] = temp;
 		
-		node new_left = new node(new_puz); //cost is wrong
+		node new_left = new node(new_puz);
 		left = new_left;
 		return true;
 	}
@@ -79,7 +84,7 @@ public class node {
 		new_puz[row][col + 1] = 0;
 		new_puz[row][col] = temp;
 		
-		node new_right = new node(new_puz); //cost is wrong
+		node new_right = new node(new_puz);
 		right = new_right;
 		return true;
 	}
@@ -97,7 +102,7 @@ public class node {
 		new_puz[row - 1][col] = 0;
 		new_puz[row][col] = temp;
 		
-		node new_up = new node(new_puz); //cost is wrong
+		node new_up = new node(new_puz); 
 		up = new_up;
 		return true;
 	}
@@ -115,7 +120,7 @@ public class node {
 		new_puz[row + 1][col] = 0;
 		new_puz[row][col] = temp;
 		
-		node new_down = new node(new_puz); //cost is wrong
+		node new_down = new node(new_puz); 
 		down = new_down;
 		return true;
 	}
@@ -135,6 +140,21 @@ public class node {
 		addDown();
 	}
 	
+	void printTrace(Integer total_expanded, Integer max_q, node e){
+		Stack<node> a = new Stack<node>();
+		while(e.parent != null){
+			a.push(e.parent);
+			e = e.parent;
+		}
+		
+		while(!a.empty()){
+			node temp = a.pop();
+			System.out.println("The best state to expand with a g(n) = " + temp.g  +
+					" and h(n) = " + temp.h + " is.. ");
+			print(temp.puzzle);
+		}
+	}
+	
 	void algo(int choice){
 		Comparator<node> comparator = new nodeComparator();
 		PriorityQueue<node> q = new PriorityQueue<node>(10, comparator);
@@ -142,20 +162,18 @@ public class node {
 		ArrayList<node> neighbors = new ArrayList<node>();
 		q.add(this);
 		node temp = this;
-		Integer depth = 0;
-		int test = 0;
-		int cost = 43453543;
-		
-//		temp.expand();
-//		while(test != 5){
+		int total_expanded = 0;
+		int max_q = 0;
 		while(q.size() != 0){
+			if(q.size() > max_q){
+				max_q = q.size();
+			}
 			temp = q.poll();
-			System.out.println("Expanding this node: ");
-			print(temp.puzzle);
 			temp.expand();
-			System.out.println("This is g(n): " + temp.g);
-			System.out.println("This is h(n): " + temp.h);
-			++depth;
+			++total_expanded;
+			System.out.println("The best state to expand with a g(n) = " + temp.g  +
+					" and h(n) = " + temp.h + " is.. ");
+			print(temp.puzzle);
 			explored.add(temp);
 			neighbors.add(temp.down);
 			neighbors.add(temp.up);
@@ -165,6 +183,7 @@ public class node {
 			for(node e : neighbors){
 				if(e != null){
 					e.g = temp.g + 1;
+					e.parent = temp;
 					if(choice == 1){
 						e.h = 0;
 						e.f = e.g + e.h;
@@ -179,18 +198,32 @@ public class node {
 					}
 					if(!e.checkFinal()){
 						if(!e.checkList(explored)){
-							System.out.println("This is the puzzle: ");
-							print(e.puzzle);
-							System.out.println("cost of node being added: " + e.f);
-//							System.out.println("this is the depth: " + e.g);
-//							System.out.println("------------");
-//							print(e.puzzle);
 							q.add(e);
 						}
 					}
 					else{
-						System.out.println("solution found : ");
+						System.out.println("Reached goal: ");
 						print(e.puzzle);
+						System.out.println("\n");
+						System.out.println("To solve this problem the search algorithm expanded"
+								+ " a total of " + total_expanded + " nodes.");
+						System.out.println("The maximum number of nodes in the queue at one time" +
+								" was " + max_q + ".");
+						System.out.println("The depth of the goal node was " + e.g + "\n\n");
+						
+						Scanner trace = new Scanner(System.in);
+						System.out.println("Press 1 to see trace.");
+						String yes = trace.nextLine();
+						
+						if(yes.equals("1")){
+							System.out.println("----- Start Trace -----");
+							printTrace(total_expanded, max_q, e);
+							System.out.println("Reached goal: ");
+							print(e.puzzle);
+							System.out.println("----- End Trace -----");
+						}
+						
+						trace.close();
 						return;
 					}
 				}
@@ -198,9 +231,9 @@ public class node {
 			
 			neighbors.clear();
 			
-			++test;
+//			++test;
 		}
-		System.out.println("Ran out of nodes to expand");
+		
 	}
 	
 	Integer mpt(){
@@ -288,13 +321,4 @@ public class node {
 		}
 		return false;
 	}
-	
-//	boolean checkq(PriorityQueue<node> a){
-//		for(node e : a){
-//			if(check_equals(puzzle, e.puzzle)){
-//				return true;
-//			}
-//		}
-//		return false;
-//	}
 }
